@@ -13,5 +13,9 @@
   },
   "engines": {
     "node": "0.12.x"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/hanpeter/earthquake-count.git"
   }
 }
