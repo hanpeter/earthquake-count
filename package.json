@@ -1,0 +1,17 @@
+{
+  "name": "amchart-demo",
+  "version": "1.0.0",
+  "description": "Demo to show off various capability of AmChart",
+  "license": "MIT",
+  "main": "web.js",
+  "scripts": {
+    "start": "node web.js"
+  },
+  "dependencies": {
+    "express": "4.13.x",
+    "request": "2.60.x"
+  },
+  "engines": {
+    "node": "0.12.x"
+  }
+}
