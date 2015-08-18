@@ -50,11 +50,11 @@ var chart = window.AmCharts.makeChart('chartDiv',
 			}
 		],
 		export: {
-          enabled: true,
-          libs: {
-            path: 'http://amcharts.com/lib/3/plugins/export/libs/'
-          }
-        },
+			enabled: true,
+			libs: {
+				path: 'http://amcharts.com/lib/3/plugins/export/libs/'
+			}
+		},
 		dataProvider: data
 	}
 );
