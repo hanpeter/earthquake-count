@@ -98,16 +98,9 @@ $.when(worldQuery, sfQuery)
 		var maxMag = Number.MIN_VALUE;
 		var minMag = Number.MAX_VALUE;
 
-		_.forEach(_.keys(world), function (mag) {
-			mag = Number(mag);
+		var magnitues = _.keys(world).concat(_.keys(sf));
 
-			if (!_.isNaN(mag)) {
-				maxMag = Math.max(maxMag, mag);
-				minMag = Math.min(minMag, mag);
-			}
-		});
-
-		_.forEach(_.keys(sf), function (mag) {
+		_.forEach(magnitues, function (mag) {
 			mag = Number(mag);
 
 			if (!_.isNaN(mag)) {
