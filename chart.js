@@ -98,50 +98,32 @@ $.when(worldQuery, sfQuery)
 		var maxMag = Number.MIN_VALUE;
 		var minMag = Number.MAX_VALUE;
 
-		_.forEach(world.features, function (earthquake) {
-			var mag = Math.round(earthquake.properties.mag);
-			var count;
+		_.forEach(_.keys(world), function (mag) {
+			mag = Number(mag);
 
-			if (!dict[mag]) {
-				dict[mag] = {
-					worldCount: 0,
-					sfCount: 0
-				};
+			if (!_.isNaN(mag)) {
+				maxMag = Math.max(maxMag, mag);
+				minMag = Math.min(minMag, mag);
 			}
-
-			count = dict[mag];
-			count.worldCount++;
-
-			maxMag = Math.max(maxMag, mag);
-			minMag = Math.min(minMag, mag);
 		});
 
-		_.forEach(sf.features, function (earthquake) {
-			var mag = Math.round(earthquake.properties.mag);
-			var count;
+		_.forEach(_.keys(sf), function (mag) {
+			mag = Number(mag);
 
-			if (!dict[mag]) {
-				dict[mag] = {
-					worldCount: 0,
-					sfCount: 0
-				};
+			if (!_.isNaN(mag)) {
+				maxMag = Math.max(maxMag, mag);
+				minMag = Math.min(minMag, mag);
 			}
-
-			count = dict[mag];
-			count.sfCount++;
-
-			maxMag = Math.max(maxMag, mag);
-			minMag = Math.min(minMag, mag);
 		});
 
 		for (var i = minMag; i <= maxMag; i++) {
 			var col = {
 				name: i,
-				worldCount: dict[i].worldCount || 0,
-				sfCount: dict[i].sfCount || 0
+				worldCount: (world[i] && world[i].count) || 0,
+				sfCount: (sf[i] && sf[i].count) || 0
 			};
-			col.worldColor = getColor(col.worldCount, world.metadata.count);
-			col.sfColor = getColor(col.sfCount, sf.metadata.count);
+			col.worldColor = getColor(col.worldCount, world.totalCount);
+			col.sfColor = getColor(col.sfCount, sf.totalCount);
 
 			data.push(col);
 		}

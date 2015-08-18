@@ -1,6 +1,6 @@
 var express = require('express');
 var request = require('request');
-request.debug = true;
+var _ = require('lodash');
 var app = express();
 var PORT = process.env.PORT  || 9001;
 
@@ -21,6 +21,26 @@ app.listen(PORT, function () {
 	console.log('Server started on port ' + PORT);
 });
 
+function handleEarthquakes(earthquakes) {
+	var dict = {};
+
+	_.forEach(earthquakes.features, function (earthquake) {
+		var mag = Math.round(earthquake.properties.mag);
+
+		if (!dict[mag]) {
+			dict[mag] = {
+				count: 0
+			};
+		}
+
+		dict[mag].count++;
+	});
+
+	dict.totalCount = earthquakes.metadata.count;
+	
+	return dict;
+}
+
 app.get('/data/world/', function (req, res) {
 	var now = new Date();
 	var startOfMonth = now.getFullYear() + '-' + bufferString(now.getMonth() + 1, 2) + '-01';
@@ -36,7 +56,7 @@ app.get('/data/world/', function (req, res) {
 	};
 
 	request.get(options, function (error, response, body) {
-		res.json(body);
+		res.json(handleEarthquakes(body));
 	});
 });
 
@@ -58,6 +78,6 @@ app.get('/data/sf/', function (req, res) {
 	};
 
 	request.get(options, function (error, response, body) {
-		res.json(body);
+		res.json(handleEarthquakes(body));
 	});
 });
