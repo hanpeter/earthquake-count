@@ -7,8 +7,13 @@ var REFRESH_RATE = 60 * 60 * 1000; // Once every 60 minutes
 
 app.use(express.static(__dirname));
 
-app.listen(PORT, function () {
+var io = require('socket.io').listen(app.listen(PORT, function () {
 	console.log('Server started on port ' + PORT);
+}));
+
+io.sockets.on('connection', function (socket) {
+	socket.emit('world', worldCounter.count);
+	socket.emit('sf', sfCounter.count);
 });
 
 app.get('/data/world/', function (req, res) {
@@ -79,12 +84,10 @@ function earthquakeCounter(options) {
 			var mag = Math.round(earthquake.properties.mag);
 
 			if (!dict[mag]) {
-				dict[mag] = {
-					count: 0
-				};
+				dict[mag] = 0;
 			}
 
-			dict[mag].count++;
+			dict[mag]++;
 		});
 
 		dict.totalCount = earthquakes.metadata.count;
@@ -102,16 +105,15 @@ function earthquakeCounter(options) {
 
 var worldCounter = earthquakeCounter({
 	afterLoad: function () {
-
+		io.sockets.emit('world', worldCounter.count);
 	}
 });
 
-var sfOptions = {
+var sfCounter = earthquakeCounter({
 	latitude: 37.7833,
 	longitude: -122.4167,
 	maxradiuskm: 100,
 	afterLoad: function () {
-
+		io.sockets.emit('sf', sfCounter.count);
 	}
-};
-var sfCounter = earthquakeCounter(sfOptions);
+});

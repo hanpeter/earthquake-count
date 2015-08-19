@@ -1,22 +1,23 @@
 {
-  "name": "amchart-demo",
-  "version": "1.0.0",
-  "description": "Demo to show off various capability of AmChart",
-  "license": "MIT",
-  "main": "web.js",
-  "scripts": {
-    "start": "node web.js"
-  },
-  "dependencies": {
-    "express": "4.13.x",
-    "request": "2.60.x",
-    "lodash": "3.10.x"
-  },
-  "engines": {
-    "node": "0.12.x"
-  },
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/hanpeter/earthquake-count.git"
-  }
+	"name": "amchart-demo",
+	"version": "1.0.0",
+	"description": "Demo to show off various capability of AmChart",
+	"license": "MIT",
+	"main": "web.js",
+	"scripts": {
+		"start": "node web.js"
+	},
+	"dependencies": {
+		"express": "latest",
+		"request": "latest",
+		"lodash": "latest",
+		"socket.io": "latest"
+	},
+	"engines": {
+		"node": "0.12.x"
+	},
+	"repository" : {
+		"type" : "git",
+		"url" : "https://github.com/hanpeter/earthquake-count.git"
+	}
 }

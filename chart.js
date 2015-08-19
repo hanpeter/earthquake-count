@@ -59,17 +59,6 @@ var chart = window.AmCharts.makeChart('chartDiv',
 	}
 );
 
-var worldQuery = $.ajax({
-	url: '/data/world/',
-	method: 'GET',
-	contentType: 'application/json'
-});
-var sfQuery = $.ajax({
-	url: '/data/sf/',
-	method: 'GET',
-	contentType: 'application/json'
-});
-
 function getColor(count, total) {
 	var percentage = count / total;
 
@@ -90,39 +79,69 @@ function getColor(count, total) {
 	}
 }
 
-$.when(worldQuery, sfQuery)
-	.done(function (worldRes, sfRes) {
-		var dict = {};
-		var world = worldRes[0];
-		var sf = sfRes[0];
-		var maxMag = Number.MIN_VALUE;
-		var minMag = Number.MAX_VALUE;
+function sortData(col1, col2) {
+	if (col1.name < col2.name) {
+		return -1;
+	}
+	else if (col1.name > col2.name) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
 
-		var magnitues = _.keys(world).concat(_.keys(sf));
+var socket = io();
+socket.on('world', function (res) {
+	_.forEach(res, function (value, key) {
+		var mag = Number(key);
+		if (_.isNaN(mag)) {
+			return;
+		}
 
-		_.forEach(magnitues, function (mag) {
-			mag = Number(mag);
+		var col = _.find(data, { name: mag });
 
-			if (!_.isNaN(mag)) {
-				maxMag = Math.max(maxMag, mag);
-				minMag = Math.min(minMag, mag);
-			}
-		});
-
-		for (var i = minMag; i <= maxMag; i++) {
-			var col = {
-				name: i,
-				worldCount: (world[i] && world[i].count) || 0,
-				sfCount: (sf[i] && sf[i].count) || 0
+		if (!col) {
+			col = {
+				name: mag,
+				worldCount: 0,
+				sfCount: 0
 			};
-			col.worldColor = getColor(col.worldCount, world.totalCount);
-			col.sfColor = getColor(col.sfCount, sf.totalCount);
-
 			data.push(col);
 		}
 
-		chart.validateData();
+		col.worldCount = value;
+		col.worldColor = getColor(col.worldCount, res.totalCount);
 	});
+
+	data.sort(sortData);
+	chart.validateData();
+});
+socket.on('sf', function (res) {
+	_.forEach(res, function (value, key) {
+		var mag = Number(key);
+		if (_.isNaN(mag)) {
+			return;
+		}
+
+		var col = _.find(data, { name: mag });
+
+		if (!col) {
+			col = {
+				name: mag,
+				worldCount: 0,
+				sfCount: 0
+			};
+			data.push(col);
+		}
+
+		col.sfCount = value;
+		col.sfColor = getColor(col.sfCount, res.totalCount);
+	});
+
+	data.sort(sortData);
+	chart.validateData();
+});
 
 $(function () {
 	$('button#worldButton').click(function () {
