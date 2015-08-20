@@ -1,119 +1,41 @@
-var express = require('express');
-var request = require('request');
-var _ = require('lodash');
-var app = express();
-var PORT = process.env.PORT  || 9001;
-var REFRESH_RATE = 60 * 60 * 1000; // Once every 60 minutes
+(function () {
+	var express = require('express');
+	var earthquakeCounter = require('./EarthquakeCounter.js');
 
-app.use(express.static(__dirname));
+	var app = express();
+	var PORT = process.env.PORT  || 9001;
 
-var io = require('socket.io').listen(app.listen(PORT, function () {
-	console.log('Server started on port ' + PORT);
-}));
+	app.use(express.static(__dirname));
 
-io.sockets.on('connection', function (socket) {
-	socket.emit('world', worldCounter.count);
-	socket.emit('sf', sfCounter.count);
-});
+	var io = require('socket.io').listen(app.listen(PORT, function () {
+		console.log('Server started on port ' + PORT);
+	}));
 
-app.get('/data/world/', function (req, res) {
-	res.json(worldCounter.count);
-});
+	io.sockets.on('connection', function (socket) {
+		socket.emit('world', worldCounter.count);
+		socket.emit('sf', sfCounter.count);
+	});
 
-app.get('/data/sf/', function (req, res) {
-	res.json(sfCounter.count);
-});
+	app.get('/data/world/', function (req, res) {
+		res.json(worldCounter.count);
+	});
 
-function earthquakeCounter(options) {
-	var me = {
-		count: {},
-		load: function () {
-			var resOptions = {
-				url: 'http://earthquake.usgs.gov/fdsnws/event/1/query',
-				qs: _.extend({
-					format: 'geojson',
-					starttime: me.startTime,
-					endtime: me.endTime
-				}, options),
-				json: true
-			};
+	app.get('/data/sf/', function (req, res) {
+		res.json(sfCounter.count);
+	});
 
-			request.get(resOptions, function (error, response, body) {
-				me.count = handleEarthquakes(body);
-				me.afterLoad();
-				console.log(me.count);
-			});
-		},
-		afterLoad: options.afterLoad || function () {}
-	};
-
-	Object.defineProperties(me, {
-		startTime: {
-			enumerate: true,
-			get: function () {
-				var now = new Date();
-				return now.getFullYear() + '-' + bufferString(now.getMonth() + 1, 2) + '-01';
-			}
-		},
-		endTime: {
-			enumerate: true,
-			get: function () {
-				var now = new Date();
-				return now.getFullYear() + '-' + bufferString(now.getMonth() + 1, 2) + '-' + bufferString(now.getDate() + 1, 2);
-			}
+	var worldCounter = earthquakeCounter({
+		afterLoad: function () {
+			io.sockets.emit('world', worldCounter.count);
 		}
 	});
 
-	var refreshTime = options.refreshTime || REFRESH_RATE;
-
-	function bufferString(string, length) {
-		string = string.toString();
-
-		if (string.length < length) {
-			return bufferString('0' + string, length);
+	var sfCounter = earthquakeCounter({
+		latitude: 37.7833,
+		longitude: -122.4167,
+		maxradiuskm: 100,
+		afterLoad: function () {
+			io.sockets.emit('sf', sfCounter.count);
 		}
-		else {
-			return string;
-		}
-	}
-
-	function handleEarthquakes(earthquakes) {
-		var dict = {};
-
-		_.forEach(earthquakes.features, function (earthquake) {
-			var mag = Math.round(earthquake.properties.mag);
-
-			if (!dict[mag]) {
-				dict[mag] = 0;
-			}
-
-			dict[mag]++;
-		});
-
-		dict.totalCount = earthquakes.metadata.count;
-		
-		return dict;
-	}
-
-	me.load();
-	setInterval(function () {
-		me.load();
-	}, refreshTime);
-
-	return me;
-}
-
-var worldCounter = earthquakeCounter({
-	afterLoad: function () {
-		io.sockets.emit('world', worldCounter.count);
-	}
-});
-
-var sfCounter = earthquakeCounter({
-	latitude: 37.7833,
-	longitude: -122.4167,
-	maxradiuskm: 100,
-	afterLoad: function () {
-		io.sockets.emit('sf', sfCounter.count);
-	}
-});
+	});
+})();
